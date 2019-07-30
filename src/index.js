@@ -1,0 +1,121 @@
+import React from "react";
+import ReactDOM from "react-dom";
+import _ from "lodash";
+import Highlight from "./Highlight";
+import data from "./data";
+import { scaledToViewport } from "./coordinates";
+import styles from "./Highlight.module.css";
+
+let parentWindow;
+let highlights = data;
+let pdfViewer;
+
+let initialized = false;
+let renderDeferred = false;
+
+const log = (...args) => {
+  console.log("[highlighter]", ...args);
+};
+
+const onMessage = e => {
+  log("message", e);
+
+  const action = e.data;
+  switch (action.type) {
+    case "register":
+      parentWindow = e.source;
+      parentWindow.postMessage({ type: "registered" });
+      break;
+    case "getHighlights":
+      parentWindow.postMessage({ type: "highlights", payload: highlights });
+      break;
+    case "setHighlights":
+      highlights = action.payload;
+      renderHighlights();
+      break;
+    case "render":
+      renderHighlights();
+      break;
+    default:
+      log("unknown message", e);
+  }
+};
+
+// 언제 렌더링을 해야 하는가.
+// textLayer가 있을 때.
+const renderHighlights = () => {
+  //
+  if (!initialized) {
+    renderDeferred = true;
+    return;
+  }
+
+  // DO something
+  log("Rendering highlights");
+  _.toPairs(_.groupBy(highlights, h => h.position.pageNumber)).forEach(
+    ([pageNumber, highlights]) => {
+      const pageView = pdfViewer.getPageView(Number(pageNumber) - 1);
+      const textLayer = pageView.textLayer;
+
+      // TODO:: textLayer가 왜 null일까
+      if (!textLayer) return;
+
+      let highlightLayer = textLayer.textLayerDiv.querySelector(
+        styles.highlightLayer
+      );
+      if (!highlightLayer) {
+        highlightLayer = document.createElement("div");
+        highlightLayer.setAttribute("classname", styles.highlightLayer);
+        textLayer.textLayerDiv.appendChild(highlightLayer);
+      }
+
+      ReactDOM.render(
+        <div className={styles.highlightLayer}>
+          {highlights.map(highlight => {
+            return (
+              <Highlight
+                position={{
+                  boundingRect: scaledToViewport(
+                    highlight.position.boundingRect,
+                    pageView.viewport
+                  ),
+                  rects: highlight.position.rects.map(rect =>
+                    scaledToViewport(rect, pageView.viewport)
+                  )
+                }}
+                comment={highlight.comment}
+              />
+            );
+          })}
+        </div>,
+        highlightLayer
+      );
+    }
+  );
+};
+
+const initialize = () => {
+  window.addEventListener("message", onMessage);
+
+  log("init");
+  // wait for textLayer where highlights are rendered
+  // eventBusDispatchToDOM from AppOption must be set true
+  document.addEventListener("textlayerrendered", () => {
+    pdfViewer = window.PDFViewerApplication.pdfViewer;
+    initialized = true;
+    log("text loaded");
+
+    // just make sure highlights are rendered after being initialized
+    if (renderDeferred) {
+      renderHighlights();
+    }
+  });
+};
+
+if (document.readyState === "loading") {
+  window.addEventListener("DOMContentLoaded", initialize);
+} else {
+  initialize();
+}
+
+ReactDOM.render(<div>PDF Highlighter Loaded!</div>, document.getElementById("root"));
