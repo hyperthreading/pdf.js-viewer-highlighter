@@ -1,17 +1,16 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import _ from "lodash";
-import Highlight from "./Highlight";
 import data from "./data";
 import { scaledToViewport } from "./coordinates";
-import styles from "./Highlight.module.css";
+import styles from "./highlights/styles.module.css";
+import AreaHighlight from "./highlights/AreaHighlight";
 
 let parentWindow;
 let highlights = data;
 let pdfViewer;
 
 let initialized = false;
-let renderDeferred = false;
 
 const log = (...args) => {
   console.log("[highlighter]", ...args);
@@ -24,10 +23,13 @@ const onMessage = e => {
   switch (action.type) {
     case "register":
       parentWindow = e.source;
-      parentWindow.postMessage({ type: "registered" });
+      parentWindow.postMessage({ type: "registered" }, "*");
       break;
     case "getHighlights":
-      parentWindow.postMessage({ type: "highlights", payload: highlights });
+      parentWindow.postMessage(
+        { type: "highlights", payload: highlights },
+        "*"
+      );
       break;
     case "setHighlights":
       highlights = action.payload;
@@ -43,10 +45,8 @@ const onMessage = e => {
 
 // 언제 렌더링을 해야 하는가.
 // textLayer가 있을 때.
-const renderHighlights = () => {
-  //
+let renderHighlights = () => {
   if (!initialized) {
-    renderDeferred = true;
     return;
   }
 
@@ -73,7 +73,7 @@ const renderHighlights = () => {
         <div className={styles.highlightLayer}>
           {highlights.map(highlight => {
             return (
-              <Highlight
+              <AreaHighlight
                 position={{
                   boundingRect: scaledToViewport(
                     highlight.position.boundingRect,
@@ -93,6 +93,7 @@ const renderHighlights = () => {
     }
   );
 };
+renderHighlights = _.debounce(renderHighlights, 66);
 
 const initialize = () => {
   window.addEventListener("message", onMessage);
@@ -106,9 +107,7 @@ const initialize = () => {
     log("text loaded");
 
     // just make sure highlights are rendered after being initialized
-    if (renderDeferred) {
-      renderHighlights();
-    }
+    renderHighlights();
   });
 };
 
@@ -118,4 +117,7 @@ if (document.readyState === "loading") {
   initialize();
 }
 
-ReactDOM.render(<div>PDF Highlighter Loaded!</div>, document.getElementById("root"));
+ReactDOM.render(
+  <div>PDF Highlighter Loaded!</div>,
+  document.getElementById("root")
+);

@@ -5,8 +5,13 @@
     /*z-index: 3;*/
 }
 
-.Highlight {
+.highlightOffset {
     position: absolute;
+}
+
+.area {
+    position: absolute;
+    background-color: #ffdb00;
 }
 
 .Highlight__emoji {

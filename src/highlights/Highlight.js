@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import styles from './Highlight.module.css';
+import styles from './styles.module.css';
 
 class Highlight extends Component {
   render() {
@@ -18,7 +18,7 @@ class Highlight extends Component {
 
     return (
       <div
-        className={styles.Highlight}
+        className={styles.highlightOffset}
       >
         {comment ? (
           <div
