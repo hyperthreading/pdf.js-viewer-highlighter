@@ -97,8 +97,13 @@ renderHighlights = _.debounce(renderHighlights, 66);
 
 const initialize = () => {
   window.addEventListener("message", onMessage);
+  window.addEventListener("focus", () => {
+    window.parent.postMessage({ type: "focus" }, "*");
+  });
+  window.addEventListener("blur", () => {
+    window.parent.postMessage({ type: "blur" }, "*");
+  });
 
-  log("init");
   // wait for textLayer where highlights are rendered
   // eventBusDispatchToDOM from AppOption must be set true
   document.addEventListener("textlayerrendered", () => {
@@ -109,6 +114,8 @@ const initialize = () => {
     // just make sure highlights are rendered after being initialized
     renderHighlights();
   });
+
+  log("init");
 };
 
 if (document.readyState === "loading") {
