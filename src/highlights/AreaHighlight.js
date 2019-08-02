@@ -1,27 +1,44 @@
-import React, { Component } from "react";
+import React, { Component, useCallback, useState } from "react";
 import cn from "classnames";
-import styles from "./styles.module.css";
+import styles from "../styles.module.css";
 
-class AreaHighlight extends Component {
-  render() {
-    const {
-      position,
-      onClick,
-      onMouseOver,
-      onMouseOut,
-      comment,
-      isScrolledTo,
-      onDoubleClick
-    } = this.props;
+import ArrowRight from "../assets/hl-arrow-right.svg";
 
-    const { boundingRect } = position;
+const AreaHighlight = ({
+  position,
+  viewport,
+  onClick,
+  onMouseOver,
+  onMouseOut,
+  comment,
+  isScrolledTo,
+  onDoubleClick
+}) => {
+  const { boundingRect } = position;
 
-    return (
-      <div className={styles.highlightOffset}>
-        <div className={cn(styles.area)} style={boundingRect}/>
+  const [ showHighlight, setShowHighlight ] = useState(false);
+
+  const onMouseEnter = useCallback(() => {
+    setShowHighlight(true);
+  }, []);
+  const onMouseLeave = useCallback(() => {
+    setShowHighlight(false);
+  }, []);
+
+  const isOnRight = (boundingRect.left + boundingRect.width > (viewport.width / 2));
+
+  return (
+    <div className={styles.highlightOffset}>
+      <div className={cn([styles.area, showHighlight ? null : styles.hideArea])} style={boundingRect}>
       </div>
-    );
-  }
-}
+      <ArrowRight
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+        className={cn(styles.arrowRight)}
+        style={{ top: boundingRect.top, left: isOnRight ? viewport.width - 10 : -22 }}
+      />
+    </div>
+  );
+};
 
 export default AreaHighlight;

@@ -3,7 +3,7 @@ import ReactDOM from "react-dom";
 import _ from "lodash";
 import data from "./data";
 import { scaledToViewport } from "./coordinates";
-import styles from "./highlights/styles.module.css";
+import styles from "./styles.module.css";
 import AreaHighlight from "./highlights/AreaHighlight";
 
 let parentWindow;
@@ -35,6 +35,9 @@ const onMessage = e => {
       highlights = action.payload;
       renderHighlights();
       break;
+    case "focus":
+      document.body.focus();
+      break;
     case "render":
       renderHighlights();
       break;
@@ -60,17 +63,18 @@ let renderHighlights = () => {
       // TODO:: textLayer가 왜 null일까
       if (!textLayer) return;
 
-      let highlightLayer = textLayer.textLayerDiv.querySelector(
-        styles.highlightLayer
+      textLayer.textLayerDiv.style.overflow = "visible";
+      let highlightLayer = pageView.div.querySelector(
+        ".highlightLayer"
       );
       if (!highlightLayer) {
         highlightLayer = document.createElement("div");
-        highlightLayer.setAttribute("classname", styles.highlightLayer);
-        textLayer.textLayerDiv.appendChild(highlightLayer);
+        highlightLayer.setAttribute("class", "highlightLayer");
+        textLayer.textLayerDiv.insertAdjacentElement('beforebegin', highlightLayer);
       }
 
       ReactDOM.render(
-        <div className={styles.highlightLayer}>
+        <div className={styles.highlightContainer}>
           {highlights.map(highlight => {
             return (
               <AreaHighlight
@@ -83,6 +87,7 @@ let renderHighlights = () => {
                     scaledToViewport(rect, pageView.viewport)
                   )
                 }}
+                viewport={pageView.viewport}
                 comment={highlight.comment}
               />
             );
@@ -123,8 +128,3 @@ if (document.readyState === "loading") {
 } else {
   initialize();
 }
-
-ReactDOM.render(
-  <div>PDF Highlighter Loaded!</div>,
-  document.getElementById("root")
-);

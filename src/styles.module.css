@@ -1,4 +1,10 @@
-.highlightLayer {
+:global(.highlightLayer) {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.highlightContainer {
     position: absolute;
     left: 0;
 
@@ -11,7 +17,18 @@
 
 .area {
     position: absolute;
-    background-color: #ffdb00;
+    background-color: #ffdb0040;
+    border: 1px solid black;
+}
+
+.hideArea {
+    background-color: transparent;
+    border-color: transparent;
+}
+
+.arrowRight  {
+    position: absolute;
+    z-index: 3;
 }
 
 .Highlight__emoji {
