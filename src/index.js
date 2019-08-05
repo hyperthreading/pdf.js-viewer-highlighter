@@ -42,6 +42,9 @@ const onMessage = e => {
       setHighlightOptions(action.payload);
       renderHighlights();
       break;
+    case "scrollToHighlight":
+      scrollToHighlight(action.payload);
+      break;
     case "focus":
       document.body.focus();
       break;
@@ -61,6 +64,28 @@ const setHighlights = hls => {
 
 const setHighlightOptions = opts => {
   highlightOptions = opts;
+};
+
+const scrollToHighlight = id => {
+  const h = highlights.find(h => h.id === id);
+  if (!h) {
+    log('jump failed, highlight not found for', id);
+  }
+  const position = h.position;
+  const pageNumber = position.pageNumber;
+  const pageViewport = pdfViewer.getPageView(pageNumber - 1).viewport;
+  const pdfPoint = pageViewport.convertToPdfPoint(
+    0,
+    scaledToViewport(position.boundingRect, pageViewport).top - window.innerHeight / 2
+  );
+  pdfViewer.scrollPageIntoView({
+    pageNumber,
+    destArray: [
+      null,
+      { name: "XYZ" },
+      ...pdfPoint
+    ]
+  });
 };
 
 // 언제 렌더링을 해야 하는가.
@@ -143,8 +168,6 @@ const initialize = () => {
   document.addEventListener("textlayerrendered", () => {
     pdfViewer = window.PDFViewerApplication.pdfViewer;
     initialized = true;
-    log("text loaded");
-
     // just make sure highlights are rendered after being initialized
     renderHighlights();
   });
