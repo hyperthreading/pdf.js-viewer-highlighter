@@ -11,6 +11,7 @@ let highlights = data;
 let highlightOptions = {
   arrow: "left" // left or right
 };
+let focusedHighlightId = null;
 let pdfViewer;
 
 let initialized = false;
@@ -43,7 +44,10 @@ const onMessage = e => {
       renderHighlights();
       break;
     case "scrollToHighlight":
-      scrollToHighlight(action.payload);
+      const id = action.payload;
+      scrollToHighlight(id);
+      focusedHighlightId = id;
+      renderHighlights();
       break;
     case "focus":
       document.body.focus();
@@ -69,22 +73,19 @@ const setHighlightOptions = opts => {
 const scrollToHighlight = id => {
   const h = highlights.find(h => h.id === id);
   if (!h) {
-    log('jump failed, highlight not found for', id);
+    log("jump failed, highlight not found for", id);
   }
   const position = h.position;
   const pageNumber = position.pageNumber;
   const pageViewport = pdfViewer.getPageView(pageNumber - 1).viewport;
   const pdfPoint = pageViewport.convertToPdfPoint(
     0,
-    scaledToViewport(position.boundingRect, pageViewport).top - window.innerHeight / 2
+    scaledToViewport(position.boundingRect, pageViewport).top -
+      window.innerHeight / 2
   );
   pdfViewer.scrollPageIntoView({
     pageNumber,
-    destArray: [
-      null,
-      { name: "XYZ" },
-      ...pdfPoint
-    ]
+    destArray: [null, { name: "XYZ" }, ...pdfPoint]
   });
 };
 
@@ -135,6 +136,7 @@ let renderHighlights = () => {
                   )
                 }}
                 arrowDirection={highlightOptions.arrow}
+                focused={focusedHighlightId === highlight.id}
                 viewport={pageView.viewport}
                 comment={highlight.comment}
                 onClickArrow={() => {
@@ -142,6 +144,8 @@ let renderHighlights = () => {
                     { type: "clickHighlight", payload: highlight },
                     "*"
                   );
+                  focusedHighlightId = highlight.id;
+                  renderHighlights();
                 }}
               />
             );

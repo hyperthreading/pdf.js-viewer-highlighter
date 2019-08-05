@@ -11,6 +11,7 @@ const AreaHighlight = ({
   onClickArrow,
   isMultipleLine,
   arrowDirection,
+  focused,
   onMouseOver,
   onMouseOut,
   comment,
@@ -62,7 +63,7 @@ const AreaHighlight = ({
         onMouseEnter={onMouseEnter}
         onMouseLeave={onMouseLeave}
         onClick={onClickArrow}
-        className={cn(styles.arrowRight)}
+        className={cn([styles.arrow, focused ? styles.arrowFocused : null])}
         style={{
           top: boundingRect.top,
           left: isOnRight ? viewport.width - 10 : -22

@@ -28,15 +28,19 @@
 
 }
 
-.hidden {
+.highlightBox.hidden {
     background-color: transparent;
 }
 
-.hidden.area {
+.highlightBox.hidden.area {
     border-color: transparent;
 }
 
-.arrowRight  {
+.arrowFocused path {
+    fill: #c7254e;
+}
+
+.arrow  {
     position: absolute;
     z-index: 3;
 }
