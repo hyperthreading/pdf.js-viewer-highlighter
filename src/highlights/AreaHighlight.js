@@ -39,7 +39,7 @@ const AreaHighlight = ({
         className={cn([
           styles.highlightBox,
           styles.line,
-          showHighlight ? null : styles.hidden
+          focused || showHighlight ? null : styles.hidden
         ])}
       />
     ))
@@ -48,7 +48,7 @@ const AreaHighlight = ({
       className={cn([
         styles.highlightBox,
         styles.area,
-        showHighlight ? null : styles.hidden
+        focused || showHighlight ? null : styles.hidden
       ])}
       style={boundingRect}
     />
