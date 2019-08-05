@@ -15,14 +15,24 @@
     position: absolute;
 }
 
-.area {
+.highlightBox {
     position: absolute;
     background-color: #ffdb0040;
+}
+
+.highlightBox.area {
     border: 1px solid black;
 }
 
-.hideArea {
+.highlightBox.line {
+
+}
+
+.hidden {
     background-color: transparent;
+}
+
+.hidden.area {
     border-color: transparent;
 }
 

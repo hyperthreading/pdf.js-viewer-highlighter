@@ -8,6 +8,9 @@ import AreaHighlight from "./highlights/AreaHighlight";
 
 let parentWindow;
 let highlights = data;
+let highlightOptions = {
+  arrow: "left" // left or right
+};
 let pdfViewer;
 
 let initialized = false;
@@ -32,7 +35,11 @@ const onMessage = e => {
       );
       break;
     case "setHighlights":
-      highlights = action.payload;
+      setHighlights(action.payload);
+      renderHighlights();
+      break;
+    case "setHighlightOptions":
+      setHighlightOptions(action.payload);
       renderHighlights();
       break;
     case "focus":
@@ -44,6 +51,16 @@ const onMessage = e => {
     default:
       log("unknown message", e);
   }
+};
+
+// TODO:: Scroll To Certain Highlights
+
+const setHighlights = hls => {
+  highlights = hls;
+};
+
+const setHighlightOptions = opts => {
+  highlightOptions = opts;
 };
 
 // 언제 렌더링을 해야 하는가.
@@ -64,13 +81,14 @@ let renderHighlights = () => {
       if (!textLayer) return;
 
       textLayer.textLayerDiv.style.overflow = "visible";
-      let highlightLayer = pageView.div.querySelector(
-        ".highlightLayer"
-      );
+      let highlightLayer = pageView.div.querySelector(".highlightLayer");
       if (!highlightLayer) {
         highlightLayer = document.createElement("div");
         highlightLayer.setAttribute("class", "highlightLayer");
-        textLayer.textLayerDiv.insertAdjacentElement('beforebegin', highlightLayer);
+        textLayer.textLayerDiv.insertAdjacentElement(
+          "beforebegin",
+          highlightLayer
+        );
       }
 
       ReactDOM.render(
@@ -78,6 +96,10 @@ let renderHighlights = () => {
           {highlights.map(highlight => {
             return (
               <AreaHighlight
+                key={highlight.id}
+                isMultipleLine={
+                  !Boolean(highlight.content && highlight.content.image)
+                }
                 position={{
                   boundingRect: scaledToViewport(
                     highlight.position.boundingRect,
@@ -87,8 +109,15 @@ let renderHighlights = () => {
                     scaledToViewport(rect, pageView.viewport)
                   )
                 }}
+                arrowDirection={highlightOptions.arrow}
                 viewport={pageView.viewport}
                 comment={highlight.comment}
+                onClickArrow={() => {
+                  window.parent.postMessage(
+                    { type: "clickHighlight", payload: highlight },
+                    "*"
+                  );
+                }}
               />
             );
           })}
